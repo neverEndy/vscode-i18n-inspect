@@ -1,26 +1,37 @@
-name: Publish VS Code Extension
+name: Release & Publish
 
-# This workflow runs only when manually triggered from the "Actions" tab,
-# or you can change this to run on a tag push, release, etc.
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
-    # You can add inputs here if you want, or leave it empty to just trigger manually.
 
 jobs:
-  publish:
+  release-publish:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check out source
+      - name: Check out the repo
         uses: actions/checkout@v3
 
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 16
+
+      - name: Configure Git (if needed)
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci  # Or npm install if no lockfile
+
+      - name: Bump version & generate changelog
+        run: npx standard-version
+
+      - name: Push version commit and tag
+        run: |
+          git push --follow-tags origin main
 
       - name: Build extension
         run: npm run compile

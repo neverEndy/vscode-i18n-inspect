@@ -1,4 +1,4 @@
-name: Build VS Code Extension
+name: Build VS Code Extension (PRs)
 
 on:
   pull_request:
@@ -18,7 +18,7 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build extension
         run: npm run compile
