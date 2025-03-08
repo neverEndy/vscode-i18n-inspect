@@ -1,11 +1,14 @@
 {
   "name": "vscode-i18n-inspect",
   "displayName": "i18n inspect",
-	"icon": "resources/icon.png",
+  "icon": "resources/icon.png",
   "description": "",
   "version": "0.1.0",
-	"publisher": "neverEndy",
+  "publisher": "neverEndy",
   "author": "neverEndy <andy.chen.neverend@gmail.com>",
+  "repository": {
+    "url": "https://github.com/neverEndy/vscode-i18n-inspect.git"
+  },
   "engines": {
     "vscode": "^1.96.0"
   },
@@ -13,8 +16,8 @@
     "Other"
   ],
   "activationEvents": [
-		"onStartupFinished"
-	],
+    "onStartupFinished"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -23,20 +26,21 @@
         "title": "refresh i18nInspect translations resource"
       }
     ],
-		"configuration": {
-			"type": "object",
-			"title": "i18next Inspect Configuration",
-			"properties": {
-				"i18nInspect.translationResource": {
-					"type": "string",
-					"default": "./translations/zh.json",
-					"description": "The URL or local path to the translation resource file."
-				}
-			}
-		}
+    "configuration": {
+      "type": "object",
+      "title": "i18next Inspect Configuration",
+      "properties": {
+        "i18nInspect.translationResource": {
+          "type": "string",
+          "default": "./translations/zh.json",
+          "description": "The URL or local path to the translation resource file."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
+		"release": "standard-version",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
@@ -52,6 +56,7 @@
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
     "eslint": "^9.21.0",
+    "standard-version": "^9.5.0",
     "typescript": "^5.7.3"
   }
 }
