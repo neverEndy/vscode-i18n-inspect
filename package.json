@@ -6,6 +6,9 @@
   "version": "0.1.0",
 	"publisher": "neverEndy",
   "author": "neverEndy <andy.chen.neverend@gmail.com>",
+	"repository": {
+		"url": "https://github.com/neverEndy/vscode-i18n-inspect.git"
+	},
   "engines": {
     "vscode": "^1.96.0"
   },

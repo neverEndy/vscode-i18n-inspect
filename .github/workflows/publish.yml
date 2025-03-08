@@ -1,0 +1,29 @@
+name: Publish VS Code Extension
+
+# This workflow runs only when manually triggered from the "Actions" tab,
+# or you can change this to run on a tag push, release, etc.
+on:
+  workflow_dispatch:
+    # You can add inputs here if you want, or leave it empty to just trigger manually.
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v3
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build extension
+        run: npm run compile
+
+      - name: Publish to Visual Studio Marketplace
+        run: npx vsce publish -p ${{ secrets.VSCE_TOKEN }}
