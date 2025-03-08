@@ -4,6 +4,8 @@
 	"icon": "resources/icon.png",
   "description": "",
   "version": "0.1.0",
+	"publisher": "neverEndy",
+  "author": "neverEndy <andy.chen.neverend@gmail.com>",
   "engines": {
     "vscode": "^1.96.0"
   },
