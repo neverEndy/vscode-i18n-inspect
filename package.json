@@ -3,7 +3,7 @@
   "displayName": "i18n inspect",
   "icon": "resources/icon.png",
   "description": "",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "neverEndy",
   "author": "neverEndy <andy.chen.neverend@gmail.com>",
   "repository": {
@@ -40,7 +40,7 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-		"release": "standard-version",
+    "release": "standard-version",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
