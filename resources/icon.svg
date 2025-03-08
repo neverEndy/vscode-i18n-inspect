@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" height="128" width="128" version="1.1">
+
+  
+  <defs>
+    <radialGradient r="50%" cy="50%" cx="50%" id="darkGradient">
+      <stop stop-color="#2b2b2b" offset="0%"></stop>
+      <stop stop-color="#1a1a1a" offset="100%"></stop>
+    </radialGradient>
+  </defs>
+
+  
+  <circle fill="url(#darkGradient)" r="60" cy="64" cx="64"></circle>
+
+  
+  <style>
+    .text {
+      font-family: sans-serif;
+      font-size: 32px;
+      fill: #66ddcc; /* Cool teal-ish color */
+    }
+    .magnifier {
+      stroke: #66ddcc;
+      stroke-width: 4;
+      fill: none;
+    }
+  </style>
+
+  
+  <text class="text" text-anchor="middle" y="50%" x="50%">
+    i18n
+  </text>
+
+  
+  <circle r="10" cy="90" cx="90" class="magnifier"></circle>
+  <line y2="105" x2="105" y1="95" x1="95" class="magnifier"></line>
+
+</svg>
