@@ -1,7 +1,7 @@
 name: Release & Publish
 
 permissions:
-  contents: write  # <-- This is essential to allow the push
+  contents: write  # Allow the GITHUB_TOKEN to push commits/tags
 
 on:
   push:
@@ -30,19 +30,35 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
+      # 1) Rebase local main on remote main
+      - name: Pull and rebase latest main
+        run: |
+          git fetch origin
+          # Make sure you're on main
+          git checkout main
+          git rebase origin/main
+
+      # 2) Bump version & generate changelog
       - name: Bump version & generate changelog
         run: |
+          # standard-version detects your commits to decide patch/minor/major,
+          # updates package.json, and creates a new git commit + tag.
           npx standard-version
 
+      # 3) Push version commit and tag
       - name: Push version commit and tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Update remote URL to use GITHUB_TOKEN
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+          # Push commits + tags
           git push --follow-tags origin main
 
+      # 4) Build extension
       - name: Build extension
         run: npm run compile
 
+      # 5) Publish to Visual Studio Marketplace
       - name: Publish to Visual Studio Marketplace
         run: npx vsce publish -p ${{ secrets.VSCE_TOKEN }}
