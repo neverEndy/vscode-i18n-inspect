@@ -1,22 +1,27 @@
 import * as vscode from 'vscode';
-import { getNestedValue } from '../utils/object-mapping';
 import store from '../store';
 import { getI18nMatch } from '../utils/matchers';
+import { getNestedValue } from '../utils/object-mapping';
+import { createTranslationInfoMarkdown } from '../utils/markdown';
 
-const hoverProvider = vscode.languages.registerHoverProvider(
-  ['javascript', 'javascriptreact', 'typescript', 'typescriptreact'],
-  {
-    provideHover(document, position) {
-      const match = getI18nMatch(document, position);
-      if (match) {
-        const translation = getNestedValue(match.key, store.translations);
-        if (translation) {
-          return new vscode.Hover(`> ✨ ${translation}`, match.range);
-        }
-      }
-      return;
-    },
-  }
-);
+export default vscode.languages.registerHoverProvider(['typescript', 'javascript', 'typescriptreact', 'javascriptreact'], {
+	provideHover(document: vscode.TextDocument, position: vscode.Position) {
+		const match = getI18nMatch(document, position);
+		if (!match) {
+			return;
+		}
 
-export default hoverProvider;
+		const translation = getNestedValue(match.key, store.translations);
+		const textFound = typeof translation === "string";
+		if (textFound) {
+			return new vscode.Hover(
+				createTranslationInfoMarkdown(
+					match.key,
+					translation,
+					store.crowdinConfig.languageCode
+				),
+				match.range
+		);
+		}
+	}
+});
