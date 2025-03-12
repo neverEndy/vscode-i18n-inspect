@@ -27,7 +27,7 @@ async function fetchJson(url: string): Promise<any> {
 /** Load translations from Crowdin OTA CDN manifest or a local file. */
 export async function loadTranslations(resource: string): Promise<any> {
 	try {
-		// 检查配置是否有效
+		// Check if configuration is valid
 		if (!store.isConfigured) {
 			if (store.crowdinConfig.distributionHash) {
 				throw new Error('Crowdin distribution hash is not configured. Please set i18nInspect.distributionHash in settings.');
@@ -37,36 +37,36 @@ export async function loadTranslations(resource: string): Promise<any> {
 		}
 
 		if (store.crowdinConfig.distributionHash) {
-			// 使用 Crowdin CDN
+			// Use Crowdin CDN
 			const manifest = await fetchJson(resource);
 			
-			// 验证 manifest 格式
+			// Validate manifest format
 			if (!manifest.content || !manifest.languages) {
 				throw new Error('Invalid manifest format: missing required fields (content or languages).');
 			}
 
 			store.manifest = manifest;
 
-			// 验证语言代码是否在可用语言列表中
+			// Verify if language code exists in available languages
 			if (!manifest.languages.includes(store.crowdinConfig.languageCode)) {
 				throw new Error(`Language code '${store.crowdinConfig.languageCode}' is not available. Available languages: ${manifest.languages.join(', ')}`);
 			}
 
-			// 验证语言内容是否存在
+			// Verify if language content exists
 			const langContent = manifest.content[store.crowdinConfig.languageCode];
 			if (!langContent || langContent.length === 0) {
 				throw new Error(`No content available for language '${store.crowdinConfig.languageCode}'`);
 			}
 
-			// 如果没有可用的翻译路径，抛出错误
+			// Throw error if no valid translation path available
 			if (!store.translationPath) {
 				throw new Error('No valid translation path available. Please check your configuration.');
 			}
 
-			// 加载实际的翻译文件
+			// Load actual translation file
 			return await fetchJson(store.translationPath);
 		} else {
-			// 处理本地文件路径
+			// Handle local file path
 			const workspaceFolders = vscode.workspace.workspaceFolders;
 			if (!workspaceFolders || workspaceFolders.length === 0) {
 				throw new Error('No workspace folder found. Please open a workspace first.');
@@ -84,10 +84,10 @@ export async function loadTranslations(resource: string): Promise<any> {
 			const content = fs.readFileSync(translationFilePath, 'utf8');
 			try {
 				const data = JSON.parse(content);
-				// 如果是本地 manifest 文件，也需要处理
+				// If it's a local manifest file, process it
 				if (data.files && Array.isArray(data.files) && data.languages) {
 					store.manifest = data;
-					// 尝试加载对应的翻译文件
+					// Try to load corresponding translation file
 					const langFile = path.join(path.dirname(translationFilePath), `${store.crowdinConfig.languageCode}.json`);
 					if (fs.existsSync(langFile)) {
 						return JSON.parse(fs.readFileSync(langFile, 'utf8'));
@@ -100,7 +100,7 @@ export async function loadTranslations(resource: string): Promise<any> {
 			}
 		}
 	} catch (error: any) {
-		// 重新抛出错误，添加更多上下文信息
+		// Re-throw error with more context
 		throw new Error(`Failed to load translations: ${error.message}`);
 	}
 }

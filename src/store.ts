@@ -1,6 +1,4 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
-import { isUrl } from './utils/validation';
 
 interface CrowdinConfig {
 	distributionHash: string;
@@ -36,11 +34,11 @@ class Store {
 		const config = vscode.workspace.getConfiguration('i18nInspect');
 		const distributionHash = config.get('distributionHash', '');
 		
-		// 如果有 distributionHash，使用 Crowdin CDN URL
+		// If distributionHash exists, use Crowdin CDN URL
 		if (distributionHash) {
 			this._resourcePath = 'https://distributions.crowdin.net/[DIST_HASH]/manifest.json';
 		} else {
-			// 否则使用用户配置的 translationResource
+			// Otherwise use user configured translationResource
 			this._resourcePath = config.get('translationResource', '');
 		}
 
@@ -51,12 +49,13 @@ class Store {
 	}
 
 	get isConfigured(): boolean {
-		// 如果有 distributionHash，不需要检查 resourcePath
+		// If distributionHash exists, no need to check resourcePath
 		if (this._crowdinConfig.distributionHash) {
 			return true;
 		}
-		// 否则必须提供有效的 resourcePath
-		return Boolean(this._resourcePath);
+		
+		// Otherwise a valid resourcePath must be provided
+		return !!this._resourcePath;
 	}
 
 	get resourcePath() {
@@ -71,13 +70,13 @@ class Store {
 			return '';
 		}
 
-		// 从 manifest 的 content 字段获取语言对应的文件路径
+		// Get language file path from manifest content field
 		const langContent = this._manifest.content[this._crowdinConfig.languageCode];
 		if (!langContent || langContent.length === 0) {
 			return '';
 		}
-
-		// 使用第一个文件路径，并确保它以 / 开头
+		
+		// Use the first file path and ensure it starts with /
 		const contentPath = langContent[0].startsWith('/') ? langContent[0] : `/${langContent[0]}`;
 		return `https://distributions.crowdin.net/${this._crowdinConfig.distributionHash}${contentPath}`;
 	}

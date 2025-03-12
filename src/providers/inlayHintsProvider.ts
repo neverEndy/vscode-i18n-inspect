@@ -3,8 +3,9 @@ import store from '../store';
 import { getI18nMatchesForLine } from '../utils/matchers';
 import { getNestedValue } from '../utils/object-mapping';
 
-export async function refreshInlayHints() {
-	// 触发所有可见编辑器的内联提示刷新
+// Trigger refresh of inlay hints for all visible editors
+export function refreshInlayHints() {
+	// Create an empty edit to trigger recalculation of inlay hints
 	vscode.window.visibleTextEditors.forEach(editor => {
 		// 创建一个空编辑，这会触发内联提示的重新计算
 		const edit = new vscode.WorkspaceEdit();
