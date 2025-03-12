@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { flattenKeys, getNestedValue } from '../utils/object-mapping';
 import store from '../store';
 import { getI18nMatchesForLine } from '../utils/matchers';
+import { createTranslationInfoMarkdown } from '../utils/markdown';
 
 // Completion provider that offers translation key suggestions
 const completionProvider = vscode.languages.registerCompletionItemProvider(
@@ -33,10 +34,10 @@ const completionProvider = vscode.languages.registerCompletionItemProvider(
           const item = new vscode.CompletionItem(key, vscode.CompletionItemKind.Value);
           // Replace just the matched key text.
           item.textEdit = vscode.TextEdit.replace(foundRange, key);
-          item.detail = "Translation key";
           const translation = getNestedValue(key, store.translations);
           if (translation) {
-            item.documentation = translation;
+            item.detail = `${translation} (${store.crowdinConfig.languageCode})`;
+            item.documentation = createTranslationInfoMarkdown(key, translation, store.crowdinConfig.languageCode);
           }
           return item;
         });

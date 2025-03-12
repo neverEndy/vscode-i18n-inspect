@@ -34,6 +34,16 @@
           "type": "string",
           "default": "./translations/zh.json",
           "description": "The URL or local path to the translation resource file."
+        },
+        "i18nInspect.distributionHash": {
+          "type": "string",
+          "default": "",
+          "description": "The distribution hash from Crowdin for OTA updates."
+        },
+        "i18nInspect.languageCode": {
+          "type": "string",
+          "default": "zh-TW",
+          "description": "The language code to use for translations from Crowdin."
         }
       }
     }
