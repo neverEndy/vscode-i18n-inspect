@@ -1,176 +1,134 @@
-/** Regex for matching t("...") calls.
- * It now only matches if "t" is not preceded by a word character.
- */
-export const tRegex = /(?<![A-Za-z0-9_])t\((["'])([^"']*)["']?\)?/g;
-
-/** This regex supports t(), t_custom(), etc.
- * The negative lookbehind ensures the function name starts with "t" not preceded by a letter, number, or underscore.
- */
-export const i18nFunctionRegex = /(?<![A-Za-z0-9_])t(?:_[A-Za-z0-9]+)*\(\s*(["'])([^"']*)\1/g;
-
-/** Regex for matching i18nKey attribute in <Trans> components. */
-export const transRegex = /i18nKey\s*=\s*(?:"([^"]+)"|'([^']+)'|{\s*(?:"([^"]+)"|'([^']+)')\s*})/g;
-
-
 import * as vscode from 'vscode';
 import { isValidKey } from './validation';
 
-/**
- * Returns a match if the cursor is within one of the i18n patterns.
- * The returned object indicates the type of match ('tFunction' or 'trans'),
- * the extracted key, and the range of the key in the document.
- */
-export function getI18nMatch(
-  document: vscode.TextDocument,
-  position: vscode.Position
-): { type: 'tFunction' | 'trans'; key: string; range: vscode.Range } | undefined {
-  // Define our matchers.
-  const matchers: Array<{ type: 'tFunction' | 'trans'; regex: RegExp }> = [
-    {
-      type: 'tFunction',
-      regex: i18nFunctionRegex,
-    },
-    {
-      type: 'trans',
-      regex: transRegex,
-    },
-  ];
-
-  const line = document.lineAt(position.line);
-  for (const matcher of matchers) {
-    let match: RegExpExecArray | null;
-    while ((match = matcher.regex.exec(line.text)) !== null) {
-      if (matcher.type === 'tFunction') {
-        // For tFunction, group[1] is the opening quote and group[2] is the key.
-        const quote = match[1];
-        const keyContent = match[2];
-        const matchStart = match.index;
-        // Find the opening quote position in the line (starting at match.index).
-        const openQuoteIndex = line.text.indexOf(quote, matchStart);
-        const keyStart = openQuoteIndex + 1;
-        const keyEnd = keyStart + keyContent.length;
-        const keyRange = new vscode.Range(
-          new vscode.Position(line.lineNumber, keyStart),
-          new vscode.Position(line.lineNumber, keyEnd)
-        );
-        if (keyRange.contains(position)) {
-          return { type: 'tFunction', key: keyContent, range: keyRange };
-        }
-      } else if (matcher.type === 'trans') {
-        // For trans, the key might be in one of several groups.
-        const key = match[1] || match[2] || match[3] || match[4];
-        if (!key) {
-          continue;
-        }
-        const keyStartOffset = line.text.indexOf(key, match.index);
-        const keyEndOffset = keyStartOffset + key.length;
-        const keyRange = new vscode.Range(
-          new vscode.Position(line.lineNumber, keyStartOffset),
-          new vscode.Position(line.lineNumber, keyEndOffset)
-        );
-        if (keyRange.contains(position)) {
-          return { type: 'trans', key, range: keyRange };
-        }
-      }
-    }
-  }
-  return undefined;
+interface I18nMatch {
+    key: string;
+    range: vscode.Range;
+    fullMatch: string;
+    type: 'tFunction' | 'trans';
 }
 
+/** Regex for matching i18nKey attribute in <Trans> components. */
+const transRegex = /i18nKey\s*=\s*(?:"([^"]+)"|'([^']+)'|{\s*(?:"([^"]+)"|'([^']+)')\s*})/g;
+
+// Match all translation function call patterns
+const I18N_PATTERNS = [
+    // Basic t and t_ prefixed custom function calls
+    /(?<![A-Za-z0-9_])t(?:_[A-Za-z0-9]+)*\(\s*(["'])([^"']+?)\1/g,
+    
+    // i18n.t calls
+    /i18n\.t\(\s*(["'])([^"']+?)\1\s*(?:,\s*{[^}]*})?\)/g,
+];
 
 /**
- * Scans a given line of text (from the document) for i18n key patterns.
- * It checks for:
- *  - t(), t_custom(), etc.
- *  - <Trans> component with an i18nKey attribute.
- * Returns an array of matches with the key, its type, and its text range.
+ * Find translation key match at given position
  */
-export function getI18nMatchesForLine(line: string, lineNumber: number): { type: 'tFunction' | 'trans'; key: string; range: vscode.Range }[] {
-  const matches: { type: 'tFunction' | 'trans'; key: string; range: vscode.Range }[] = [];
-
-  let match: RegExpExecArray | null;
-
-  // Process t function matches.
-  while ((match = i18nFunctionRegex.exec(line)) !== null) {
-    // match[1] is the opening quote; match[2] is the key.
-    const quote = match[1];
-    const keyContent = match[2];
-    const matchStart = match.index;
-    // Find the opening quote position in the line starting at match.index.
-    const openQuoteIndex = line.indexOf(quote, matchStart);
-    const keyStart = openQuoteIndex + 1;
-    const keyEnd = keyStart + keyContent.length;
-    const keyRange = new vscode.Range(
-      new vscode.Position(lineNumber, keyStart),
-      new vscode.Position(lineNumber, keyEnd)
-    );
-    matches.push({ type: 'tFunction', key: keyContent, range: keyRange });
-  }
-
-  // Process <Trans> component matches.
-  while ((match = transRegex.exec(line)) !== null) {
-    // The key may appear in one of several capture groups.
-    const key = match[1] || match[2] || match[3] || match[4];
-    if (!key) {
-      continue;
+export function getI18nMatch(document: vscode.TextDocument, position: vscode.Position): I18nMatch | null {
+    const line = document.lineAt(position.line);
+    const text = line.text;
+    const matches = getI18nMatchesForLine(text, line.lineNumber);
+    
+    // Find match containing current position
+    for (const match of matches) {
+        // Check if position is within key range
+        const keyStart = text.indexOf(match.key, match.range.start.character);
+        const keyEnd = keyStart + match.key.length;
+        
+        // Create range containing only the key
+        const keyRange = new vscode.Range(
+            new vscode.Position(line.lineNumber, keyStart),
+            new vscode.Position(line.lineNumber, keyEnd)
+        );
+        
+        if (keyRange.contains(position)) {
+            return {
+                ...match,
+                range: keyRange
+            };
+        }
     }
-    const keyStartOffset = line.indexOf(key, match.index);
-    const keyEndOffset = keyStartOffset + key.length;
-    const keyRange = new vscode.Range(
-      new vscode.Position(lineNumber, keyStartOffset),
-      new vscode.Position(lineNumber, keyEndOffset)
-    );
-    matches.push({ type: 'trans', key, range: keyRange });
-  }
-
-  return matches;
+    
+    return null;
 }
 
+/**
+ * Find all translation key matches in given line
+ */
+export function getI18nMatchesForLine(text: string, lineNumber: number): I18nMatch[] {
+    const matches: I18nMatch[] = [];
+
+    // Process function call matches
+    for (const pattern of I18N_PATTERNS) {
+        const regex = new RegExp(pattern.source, pattern.flags);  // Create new regex instance
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+            const key = match[2]; // Use second capture group as first one is quotes
+            if (!key) continue;
+
+            const fullMatch = match[0];
+            const startIndex = match.index;
+            const keyStartOffset = fullMatch.indexOf(key);
+            const keyStart = startIndex + keyStartOffset;
+            
+            matches.push({
+                key,
+                range: new vscode.Range(
+                    new vscode.Position(lineNumber, keyStart),
+                    new vscode.Position(lineNumber, keyStart + key.length)
+                ),
+                fullMatch,
+                type: 'tFunction'
+            });
+        }
+    }
+
+    // Process Trans component matches
+    const transRegexInstance = new RegExp(transRegex.source, transRegex.flags);
+    let transMatch;
+    while ((transMatch = transRegexInstance.exec(text)) !== null) {
+        // Check all possible capture groups
+        const key = transMatch[1] || transMatch[2] || transMatch[3] || transMatch[4];
+        if (!key) continue;
+
+        const fullMatch = transMatch[0];
+        const startIndex = transMatch.index;
+        const keyStartOffset = fullMatch.indexOf(key);
+        const keyStart = startIndex + keyStartOffset;
+        
+        matches.push({
+            key,
+            range: new vscode.Range(
+                new vscode.Position(lineNumber, keyStart),
+                new vscode.Position(lineNumber, keyStart + key.length)
+            ),
+            fullMatch,
+            type: 'trans'
+        });
+    }
+
+    return matches;
+}
 
 /**
- * Scans the entire document text for i18n key patterns (both function calls and <Trans> components)
- * and returns an array of ranges where keys are invalid.
+ * Get ranges of all invalid translation keys in document
  */
 export function getI18nErrorRanges(editor: vscode.TextEditor): vscode.Range[] {
-  const text = editor.document.getText();
-  const errorRanges: vscode.Range[] = [];
-  let match: RegExpExecArray | null;
-
-  // Check matches for i18n functions.
-  while ((match = i18nFunctionRegex.exec(text)) !== null) {
-    // match[1] is the opening quote; match[2] is the key.
-    const key = match[2];
-    if (!isValidKey(key)) {
-      const fullMatch = match[0];
-      const quote = match[1];
-      // Find the position of the opening quote in the full matched string.
-      const localQuoteIndex = fullMatch.indexOf(quote);
-      // The key starts right after the opening quote.
-      const keyStartOffset = match.index + localQuoteIndex + 1;
-      const keyEndOffset = keyStartOffset + key.length;
-      const startPos = editor.document.positionAt(keyStartOffset);
-      const endPos = editor.document.positionAt(keyEndOffset);
-      errorRanges.push(new vscode.Range(startPos, endPos));
+    const errorRanges: vscode.Range[] = [];
+    const document = editor.document;
+    
+    // Iterate through each line
+    for (let i = 0; i < document.lineCount; i++) {
+        const line = document.lineAt(i);
+        const matches = getI18nMatchesForLine(line.text, i);
+        
+        // Check if each matched key is valid
+        for (const match of matches) {
+            if (!isValidKey(match.key)) {
+                errorRanges.push(match.range);
+            }
+        }
     }
-  }
-
-  // Check matches for <Trans> components.
-  while ((match = transRegex.exec(text)) !== null) {
-    // The key may appear in one of several capture groups.
-    const key = match[1] || match[2] || match[3] || match[4];
-    if (!key) {
-      continue;
-    }
-    if (!isValidKey(key)) {
-      // Find the key's offset in the document.
-      const keyStartOffset = text.indexOf(key, match.index);
-      const keyEndOffset = keyStartOffset + key.length;
-      const startPos = editor.document.positionAt(keyStartOffset);
-      const endPos = editor.document.positionAt(keyEndOffset);
-      errorRanges.push(new vscode.Range(startPos, endPos));
-    }
-  }
-
-  return errorRanges;
+    
+    return errorRanges;
 }
 
