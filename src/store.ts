@@ -70,6 +70,8 @@ class Store {
 			return '';
 		}
 
+		const timestamp = this._manifest.timestamp;
+
 		// Get language file path from manifest content field
 		const langContent = this._manifest.content[this._crowdinConfig.languageCode];
 		if (!langContent || langContent.length === 0) {
@@ -78,7 +80,7 @@ class Store {
 		
 		// Use the first file path and ensure it starts with /
 		const contentPath = langContent[0].startsWith('/') ? langContent[0] : `/${langContent[0]}`;
-		return `https://distributions.crowdin.net/${this._crowdinConfig.distributionHash}${contentPath}`;
+		return `https://distributions.crowdin.net/${this._crowdinConfig.distributionHash}${contentPath}?timestamp=${timestamp}`;
 	}
 
 	get translations() {
