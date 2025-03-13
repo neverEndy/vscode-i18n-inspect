@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 0.1.6 (2025-03-13)
+
+
+### Features
+
+* enhance translation functionality with placeholder replacement and UI updates ([8eeca8c](https://github.com/neverEndy/vscode-i18n-inspect/commit/8eeca8c245a1702352aaebb34730fea928093d69))
+
 ### 0.1.5 (2025-03-12)
 
 
