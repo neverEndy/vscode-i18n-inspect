@@ -13,8 +13,8 @@ const transRegex = /i18nKey\s*=\s*(?:"([^"]+)"|'([^']+)'|{\s*(?:"([^"]+)"|'([^']
 
 // Match all translation function call patterns
 const I18N_PATTERNS = [
-    // Basic t and t_ prefixed custom function calls
-    /(?<![A-Za-z0-9_])t(?:_[A-Za-z0-9]+)*\(\s*(["']?)([^)]*)\1\s*\)/g,
+    // Basic t and t_ prefixed custom function calls with optional parameters
+    /(?<![A-Za-z0-9_])t(?:_[A-Za-z0-9]+)*\(\s*(["']?)([^)]*)\1\s*(?:,\s*{[^}]*})?\)/g,
     
     // i18n.t calls
     /i18n\.t\(\s*(["'])([^"']*?)\1\s*(?:,\s*{[^}]*})?\)/g,

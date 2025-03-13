@@ -37,20 +37,23 @@ export default vscode.languages.registerInlayHintsProvider(
 						translation = replaceInterpolatedPlaceholders(translation, store.translations);
 					}
 
+					// Extract options if present
+					const optionsMatch = match.fullMatch.match(/,\s*({[^}]*})/);
+					const options = optionsMatch ? optionsMatch[1] : null;
+
 					const hintText = isDynamicKey(match.key)
-            ? `🎲 dynamic key`
-            : typeof translation === "string"
-              ? `✨ ${translation}`
-              : "❗❗ Σ(°Д°; key not found ❗❗";
+						? `🎲 dynamic key${options ? ` ${options}` : ''}`
+						: typeof translation === "string"
+							? `✨ ${translation}${options ? ` ${options}` : ''}`
+							: "❗❗ Σ(°Д°; key not found ❗❗";
 					
-						const hint = new vscode.InlayHint(
-							match.range.end,
-							hintText,
-							vscode.InlayHintKind.Parameter
-						);
-						hint.paddingLeft = true;
-						hints.push(hint);
-					
+					const hint = new vscode.InlayHint(
+						match.range.end,
+						hintText,
+						vscode.InlayHintKind.Parameter
+					);
+					hint.paddingLeft = true;
+					hints.push(hint);
 				}
 			}
 			
