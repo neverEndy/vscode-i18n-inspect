@@ -2,12 +2,12 @@ import * as vscode from 'vscode';
 import store from '../store';
 import { getI18nMatchesForLine } from '../utils/matchers';
 import { getNestedValue } from '../utils/object-mapping';
+import replaceInterpolatedPlaceholders from '../utils/replaceInterpolatedPlaceholders';
 
 // Trigger refresh of inlay hints for all visible editors
 export function refreshInlayHints() {
 	// Create an empty edit to trigger recalculation of inlay hints
 	vscode.window.visibleTextEditors.forEach(editor => {
-		const edit = new vscode.WorkspaceEdit();
 		editor.document.save();
 	});
 }
@@ -23,12 +23,16 @@ export default vscode.languages.registerInlayHintsProvider(
 				const matches = getI18nMatchesForLine(line.text, i);
 				
 				for (const match of matches) {
-					const translation = getNestedValue(match.key, store.translations);
+					let translation = getNestedValue(match.key, store.translations);
+
+					if (translation) {
+						translation = replaceInterpolatedPlaceholders(translation, store.translations);
+					}
+
 					const hintText = typeof translation === "string"
 						? `✨ ${translation}`
 						: "❗❗ Σ(°Д°; key not found ❗❗";
 					
-					if (translation) {
 						const hint = new vscode.InlayHint(
 							match.range.end,
 							hintText,
@@ -36,7 +40,7 @@ export default vscode.languages.registerInlayHintsProvider(
 						);
 						hint.paddingLeft = true;
 						hints.push(hint);
-					}
+					
 				}
 			}
 			

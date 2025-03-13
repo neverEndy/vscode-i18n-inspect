@@ -3,6 +3,7 @@ import { flattenKeys, getNestedValue } from '../utils/object-mapping';
 import store from '../store';
 import { getI18nMatchesForLine } from '../utils/matchers';
 import { createTranslationInfoMarkdown } from '../utils/markdown';
+import replaceInterpolatedPlaceholders from '../utils/replaceInterpolatedPlaceholders';
 
 // Completion provider that offers translation key suggestions
 const completionProvider = vscode.languages.registerCompletionItemProvider(
@@ -34,8 +35,9 @@ const completionProvider = vscode.languages.registerCompletionItemProvider(
           const item = new vscode.CompletionItem(key, vscode.CompletionItemKind.Value);
           // Replace just the matched key text.
           item.textEdit = vscode.TextEdit.replace(foundRange, key);
-          const translation = getNestedValue(key, store.translations);
+          let translation = getNestedValue(key, store.translations);
           if (translation) {
+            translation = replaceInterpolatedPlaceholders(translation, store.translations);
             item.detail = `${translation} (${store.crowdinConfig.languageCode})`;
             item.documentation = createTranslationInfoMarkdown(key, translation, store.crowdinConfig.languageCode);
           }

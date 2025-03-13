@@ -14,10 +14,10 @@ const transRegex = /i18nKey\s*=\s*(?:"([^"]+)"|'([^']+)'|{\s*(?:"([^"]+)"|'([^']
 // Match all translation function call patterns
 const I18N_PATTERNS = [
     // Basic t and t_ prefixed custom function calls
-    /(?<![A-Za-z0-9_])t(?:_[A-Za-z0-9]+)*\(\s*(["'])([^"']+?)\1/g,
+    /(?<![A-Za-z0-9_])t(?:_[A-Za-z0-9]+)*\(\s*(["']?)([^)]*)\1\s*\)/g,
     
     // i18n.t calls
-    /i18n\.t\(\s*(["'])([^"']+?)\1\s*(?:,\s*{[^}]*})?\)/g,
+    /i18n\.t\(\s*(["'])([^"']*?)\1\s*(?:,\s*{[^}]*})?\)/g,
 ];
 
 /**
@@ -63,7 +63,9 @@ export function getI18nMatchesForLine(text: string, lineNumber: number): I18nMat
         let match;
         while ((match = regex.exec(text)) !== null) {
             const key = match[2]; // Use second capture group as first one is quotes
-            if (!key) continue;
+            if (!key) {
+                continue;
+            };
 
             const fullMatch = match[0];
             const startIndex = match.index;
