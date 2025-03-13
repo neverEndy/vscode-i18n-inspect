@@ -12,10 +12,18 @@ export function refreshInlayHints() {
 	});
 }
 
+function isDynamicKey(key: string): boolean {
+	// Check if key contains template literal syntax
+	if (key.includes('${')) {
+		return true;
+	}
+  return false;
+}
+
 export default vscode.languages.registerInlayHintsProvider(
 	['typescript', 'javascript', 'typescriptreact', 'javascriptreact'],
 	{
-		provideInlayHints(document: vscode.TextDocument, range: vscode.Range) {
+		async provideInlayHints(document: vscode.TextDocument, range: vscode.Range) {
 			const hints: vscode.InlayHint[] = [];
 			
 			for (let i = range.start.line; i <= range.end.line; i++) {
@@ -29,9 +37,11 @@ export default vscode.languages.registerInlayHintsProvider(
 						translation = replaceInterpolatedPlaceholders(translation, store.translations);
 					}
 
-					const hintText = typeof translation === "string"
-						? `✨ ${translation}`
-						: "❗❗ Σ(°Д°; key not found ❗❗";
+					const hintText = isDynamicKey(match.key)
+            ? `🎲 dynamic key`
+            : typeof translation === "string"
+              ? `✨ ${translation}`
+              : "❗❗ Σ(°Д°; key not found ❗❗";
 					
 						const hint = new vscode.InlayHint(
 							match.range.end,

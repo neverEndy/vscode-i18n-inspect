@@ -7,6 +7,9 @@ const App = () => {
       <h1>{t("common.action.go_model_list")}</h1>
       <h1>{t("common.locale_formal.ar-EG")}</h1>
       <h1>{t("login.main_page.footer_copy_right")}</h1>
+      <h1>{t(`common.locale_abbr.${language}`)}</h1>
+
+
 
       <h1>{t("哈哈")}</h1>
       <h1>{t("")}</h1>
